@@ -1,7 +1,9 @@
 import Link from "next/link";
-import type { Database } from "@/lib/supabase/database.types";
 
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
+type Customer = {
+  id: string; name: string; email: string; location: string | null;
+  budget: number; interest_type: string; lead_tag: "hot" | "warm" | "cold";
+};
 
 const tagColors: Record<string, string> = {
   hot: "bg-red-100 text-red-700",

@@ -6,12 +6,23 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { generateInsight } from "@/lib/ai/insights";
 import { scheduleFollowUp } from "@/lib/followups/scheduler";
-import type { Database } from "@/lib/supabase/database.types";
 import type { Customer, Interaction, DealContext } from "@/lib/types";
 
-type DBCustomer = Database["public"]["Tables"]["customers"]["Row"];
-type DBInteraction = Database["public"]["Tables"]["interactions"]["Row"];
-type DBDeal = Database["public"]["Tables"]["deals"]["Row"];
+type DBCustomer = {
+  id: string; name: string; phone: string; email: string;
+  location: string | null; budget: number; interest_type: string;
+  lead_tag: "hot" | "warm" | "cold"; sales_rep_id: string | null;
+  created_at: string; updated_at: string;
+};
+type DBInteraction = {
+  id: string; customer_id: string; kind: "call" | "whatsapp" | "meeting";
+  note: string | null; responded_in_minutes: number | null; created_at: string;
+};
+type DBDeal = {
+  id: string; customer_id: string;
+  stage: "lead" | "contacted" | "negotiation" | "closed";
+  engagement_level: number; value: number; created_at: string; updated_at: string;
+};
 
 export default function CustomerProfilePage() {
   const { id } = useParams<{ id: string }>();

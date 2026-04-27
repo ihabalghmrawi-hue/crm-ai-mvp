@@ -1,6 +1,7 @@
-import type { Database } from "@/lib/supabase/database.types";
-
-type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"] & {
+type FollowUp = {
+  id: string; customer_id: string; due_at: string; reminder_text: string;
+  status: "pending" | "done" | "snoozed" | "cancelled";
+  snoozed_until: string | null; created_at: string; updated_at: string;
   customers?: { name: string } | null;
 };
 

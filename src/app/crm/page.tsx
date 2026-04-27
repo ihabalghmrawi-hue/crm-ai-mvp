@@ -7,10 +7,18 @@ import { DashboardKPIs } from "@/components/dashboard-kpis";
 import { FollowUpsList } from "@/components/followups-list";
 import { CustomerCard } from "@/components/customer-card";
 import { AddCustomerForm } from "@/components/add-customer-form";
-import type { Database } from "@/lib/supabase/database.types";
-
-type Customer = Database["public"]["Tables"]["customers"]["Row"];
-type FollowUp = Database["public"]["Tables"]["follow_ups"]["Row"];
+export type Customer = {
+  id: string; name: string; phone: string; email: string;
+  location: string | null; budget: number; interest_type: string;
+  lead_tag: "hot" | "warm" | "cold"; sales_rep_id: string | null;
+  created_at: string; updated_at: string;
+};
+export type FollowUp = {
+  id: string; customer_id: string; due_at: string; reminder_text: string;
+  status: "pending" | "done" | "snoozed" | "cancelled";
+  snoozed_until: string | null; created_at: string; updated_at: string;
+  customers?: { name: string } | null;
+};
 
 interface KPIData {
   total_customers: number;
