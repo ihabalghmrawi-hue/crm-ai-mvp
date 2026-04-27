@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 interface Props {
   onClose: () => void;
@@ -9,7 +8,6 @@ interface Props {
 }
 
 export function AddCustomerForm({ onClose, onSaved }: Props) {
-  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +30,8 @@ export function AddCustomerForm({ onClose, onSaved }: Props) {
     setError(null);
     setLoading(true);
 
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
     const { error: insertError } = await supabase.from("customers").insert({
       name: form.name.trim(),
       email: form.email.trim(),
