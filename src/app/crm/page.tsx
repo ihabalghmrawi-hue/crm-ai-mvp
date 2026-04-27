@@ -39,31 +39,36 @@ export default function CRMHomePage() {
   const [userEmail, setUserEmail] = useState<string>("");
 
   const loadData = useCallback(async () => {
-    // createClient() is called here — runs only in the browser
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    setLoading(true);
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      setLoading(true);
 
-    const [
-      { data: customersData },
-      { data: followUpsData },
-      { data: kpisData },
-      { data: pipelineData },
-      { data: { user } },
-    ] = await Promise.all([
-      supabase.from("customers").select("*").order("created_at", { ascending: false }),
-      supabase.from("follow_ups").select("*, customers(name)").eq("status", "pending").order("due_at", { ascending: true }).limit(10),
-      supabase.from("dashboard_kpis").select("*").single(),
-      supabase.from("pipeline_summary").select("*"),
-      supabase.auth.getUser(),
-    ]);
+      // Check auth first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { window.location.href = "/auth/login"; return; }
+      setUserEmail(user.email ?? "");
 
-    setCustomers((customersData as Customer[]) ?? []);
-    setFollowUps((followUpsData as FollowUp[]) ?? []);
-    setKpis(kpisData as KPIData);
-    setPipeline((pipelineData as PipelineStage[]) ?? []);
-    setUserEmail(user?.email ?? "");
-    setLoading(false);
+      // Fetch customers and follow-ups
+      const [{ data: customersData }, { data: followUpsData }] = await Promise.all([
+        supabase.from("customers").select("*").order("created_at", { ascending: false }),
+        supabase.from("follow_ups").select("*, customers(name)").eq("status", "pending").order("due_at", { ascending: true }).limit(10),
+      ]);
+      setCustomers((customersData as Customer[]) ?? []);
+      setFollowUps((followUpsData as FollowUp[]) ?? []);
+
+      // Fetch views (may not exist yet — ignore errors)
+      const { data: kpisData } = await supabase.from("dashboard_kpis").select("*").single();
+      setKpis(kpisData as KPIData ?? null);
+
+      const { data: pipelineData } = await supabase.from("pipeline_summary").select("*");
+      setPipeline((pipelineData as PipelineStage[]) ?? []);
+
+    } catch (err) {
+      console.error("loadData error:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
