@@ -30,25 +30,34 @@ export function AddCustomerForm({ onClose, onSaved }: Props) {
     setError(null);
     setLoading(true);
 
-    const { createClient } = await import("@/lib/supabase/client");
-    const supabase = createClient();
-    const { error: insertError } = await supabase.from("customers").insert({
-      name: form.name.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim(),
-      location: form.location.trim() || null,
-      budget: parseFloat(form.budget) || 0,
-      interest_type: form.interest_type.trim(),
-      lead_tag: form.lead_tag,
-    });
+    try {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
 
-    if (insertError) {
-      setError(insertError.message);
-    } else {
-      onSaved();
+      // Check session first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setError("Not logged in. Please refresh and sign in again."); setLoading(false); return; }
+
+      const { error: insertError } = await supabase.from("customers").insert({
+        name: form.name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        location: form.location.trim() || null,
+        budget: parseFloat(form.budget) || 0,
+        interest_type: form.interest_type.trim() || "General",
+        lead_tag: form.lead_tag,
+      });
+
+      if (insertError) {
+        setError(insertError.message);
+      } else {
+        onSaved();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unknown error occurred");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (
